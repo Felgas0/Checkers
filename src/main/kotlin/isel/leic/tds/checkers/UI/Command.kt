@@ -4,13 +4,13 @@ import isel.leic.tds.checkers.model.*
 abstract class Command {
     open fun syntax(args:List<String>):Boolean = args.isEmpty()
     abstract fun execute(board: Board?, args: List<String>): Board
-    open fun kill():Boolean = false
+    open fun exit():Boolean = false
 }
 
 class StartCmd: Command() {
     override fun syntax(args: List<String>): Boolean = args.size == 1
     override fun execute(board: Board?, args: List<String>): Board {
-        TODO()
+        return Board(mutableMapOf(), args[0].first())
     }
 
 }
@@ -18,15 +18,18 @@ class StartCmd: Command() {
 class PlayCmd: Command(){
     override fun syntax(args: List<String>): Boolean = args.size == 2
     override fun execute(board: Board?, args: List<String>): Board {
-        TODO("Not yet implemented")
+        check(board != null) { "No Board" }
+        return board.tryPlay(args[0], args[1])
     }
 
 }
 
 class gridCmd:Command(){
     override fun syntax(args: List<String>): Boolean = args.isEmpty()
-    override fun execute(board: Board?, args: List<String>): Board {
-        TODO("Not yet implemented")
+    override fun execute(board: Board?, args: List<String>): Board{
+        check(board != null) { "No Board" }
+        board.show()
+        return board
     }
 }
 
@@ -40,6 +43,9 @@ class RefreshCmd:Command(){
 class ExitCmd: Command(){
     override fun syntax(args: List<String>): Boolean = args.isEmpty()
     override fun execute(board: Board?, args: List<String>): Board {
-        TODO("Not yet implemented")
+        TODO()
+        }
+    override fun exit(): Boolean {
+        return true
     }
 }

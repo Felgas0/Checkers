@@ -29,6 +29,10 @@ class Square private constructor(val index: Int) {
     }
 
     override fun hashCode():Int = (row.hashCode() + column.hashCode()) * 31
+
+    fun isDiagonal(to: Square?): Boolean {
+        return to != null && row.index - to.row.index == column.index - to.column.index
+    }
 }
 
 fun String.toSquareOrNull(): Square? {

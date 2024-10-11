@@ -18,11 +18,9 @@ fun main() {
         }
         displayBoard(board)
     }
-}
+    }
 
-fun getCmd(): Command {
 
-}
 
 fun initializeBoard(): Board {
     val grid = mutableMapOf<Square, Char?>()
