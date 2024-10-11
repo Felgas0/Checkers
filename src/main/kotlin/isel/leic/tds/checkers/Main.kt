@@ -4,7 +4,7 @@ import isel.leic.tds.checkers.model.*
 import isel.leic.tds.checkers.UI.*
 
 fun main() {
-    var board = initializeBoard()
+    var board = Board(mutableMapOf(), 'w')
     val cmd = getCmd()
     while (true) {
         val (name, args) = readLineCommand()
@@ -14,19 +14,27 @@ fun main() {
         } else if (!command.syntax(args)) {
             println("Syntax error")
         } else {
-            board = command.execute(args, board)
+            board = command.execute(board, args)
+            displayBoard(board)
+            if (command.exit()) break
         }
-        displayBoard(board)
     }
     }
 
 
 
-fun initializeBoard(): Board {
-    val grid = mutableMapOf<Square, Char?>()
-    return Board(grid, 'W')
-}
+
 
 fun displayBoard(board: Board) {
     board.show()
+}
+
+fun getCmd(): Map<String, Command> {
+    return mapOf(
+        "start" to StartCmd(),
+        "play" to PlayCmd(),
+        "grid" to gridCmd(),
+        "refresh" to RefreshCmd(),
+        "exit" to ExitCmd()
+    )
 }
