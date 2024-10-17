@@ -2,58 +2,91 @@ package isel.leic.tds.checkers.model
 
 import java.util.Stack
 
-class Board(val grid: MutableMap<Square, Char?>, val turn: Char) {
+
+class Board(val grid: MutableMap<Square, Player?>, val player: Player) {
 
     init {
+        reset()
+    }
+
+    private fun reset() {
         if (grid.isEmpty()) {
             // Initialize BLACK pieces
             Square.values.forEach { square ->
                 if (square.row.index in 0 until BOARD_DIM / 2 - 1 && square.black) {
-                    grid[square] = 'b'
+                    grid[square] = Player.b
                 }
             }
 
             // Initialize WHITE pieces
             Square.values.forEach { square ->
                 if (square.row.index in BOARD_DIM / 2 + 1 until BOARD_DIM && square.black) {
-                    grid[square] = 'w'
+                    grid[square] = Player.w
                 }
             }
         }
     }
+/*
+    fun play(startPos: Square, endPos: Square): Board {
+        grid[endPos] = grid[startPos]
+        grid[startPos] = null
 
-    fun play(startPos: String, endPos: String): Board {
-        val sp = startPos.toSquare()
-        val ep = endPos.toSquare()
-        grid[ep] = grid[sp]
-        grid[sp] = null
-
-        if (grid[ep] == 'w' && ep.row.index == 0) {
-            grid[ep] = 'W'
-        } else if (grid[ep] == 'b' && ep.row.index == BOARD_DIM - 1) {
-            grid[ep] = 'B'
+        if (grid[endPos] == Player.w && endPos.row.index == 0) {
+            grid[endPos] = Player.w
+        } else if (grid[endPos] == Player.b && endPos.row.index == BOARD_DIM - 1) {
+            grid[endPos] = Player.b
         }
-        return Board(grid, if (turn == 'w') 'b' else 'w')
+        return Board(grid, player.other)
     }
 
-    fun Board.canPlay(startPos: String, endPos: String): Boolean {
-        val sp = startPos.toSquareOrNull()
-        val ep = endPos.toSquareOrNull()
+ */
+
+    fun play(startPos: Square, endPos: Square): Board {
+        grid[endPos] = grid[startPos]
+        grid[startPos] = null
+
+        // Check if a piece was captured
+        if(canCapture(startPos)) capture(startPos, endPos)
+        else {
+            if (grid[endPos] == Player.w && endPos.row.index == 0) {
+                grid[endPos] = Player.w
+            } else if (grid[endPos] == Player.b && endPos.row.index == BOARD_DIM - 1) {
+                grid[endPos] = Player.b
+            }
+        }
+        return Board(grid, player.other)
+    }
+
+    private fun canCapture2(endPos: Square, startPos: Square) {
+        val rowDiff = endPos.row.index - startPos.row.index
+        val colDiff = endPos.column.index - startPos.column.index
+        if (Math.abs(rowDiff) == 2 && Math.abs(colDiff) == 2) {
+            val capturedRow = startPos.row.index + rowDiff / 2
+            val capturedCol = startPos.column.index + colDiff / 2
+            val capturedSquare = Square(Row(capturedRow), Column(capturedCol))
+            grid[capturedSquare] = null
+        }
+    }
+
+
+    fun Board.canPlay(startPos: Square, endPos: Square): Boolean {
         return when {
-            sp == null || ep == null -> false  // if the positions are not squares can't play
-            grid[sp] == null -> false          // if the selected square by the user does not have any piece can't play
-            grid[sp] != turn -> false          // if the piece selected by a player is an opponent piece can't play
-            grid[ep] != null -> false          // if there is a piece on the end position can't play
-            //anyPieceCanCapture() -> canCapture(sp) // checks if the move is to capture a piece if he can capture any
+            startPos == null || endPos == null -> false  // if the positions are not squares can't play
+            grid[startPos] == null -> false          // if the selected square by the user does not have any piece can't play
+            grid[startPos] != player -> false          // if the piece selected by a player is an opponent piece can't play
+            grid[endPos] != null -> false          // if there is a piece on the end position can't play
+            anyPieceCanCapture() -> canCapture(startPos) // checks if the move is to capture a piece if he can capture any
             else -> true
         }
     }
 
-    fun Board.isWinner(p: Char): Boolean = grid.values.none(){it != p}
 
-    //private fun anyPieceCanCapture(): Boolean = grid.filter { it.value == turn }.keys.any() { canCapture(it)}
 
-    /*private fun canCapture(startingSquare: Square): Boolean {
+    fun Board.isWinner(p: Player): Boolean = grid.values.none(){it != player}
+
+    private fun anyPieceCanCapture(): Boolean = grid.filter { it.value == player }.keys.any() { canCapture(it)}
+
+    private fun canCapture(startingSquare: Square): Boolean {
         val moves = listOf(
             Pair(2, 2),
             Pair(2, -2),
@@ -71,15 +104,27 @@ class Board(val grid: MutableMap<Square, Char?>, val turn: Char) {
                 val newSquare = Square(Row(newRow), Column(newCol))
                 val midSquare = Square(Row(midRow), Column(midCol))
 
-                if (grid[midSquare] != null && grid[midSquare] != turn && grid[newSquare] == null) {
+                if (grid[midSquare] != null && grid[midSquare] != player && grid[newSquare] == null) {
                     return true
                 }
             }
         }
         return false
-    }*/
+    }
 
-    fun tryPlay(s: String, s1: String): Board {
+    private fun capture(s1: Square, s2: Square): Board {
+        val rowDiff = s2.row.index - s1.row.index
+        val colDiff = s2.column.index - s1.column.index
+        val capturedRow = s1.row.index + rowDiff / 2
+        val capturedCol = s1.column.index + colDiff / 2
+        val capturedSquare = Square(Row(capturedRow), Column(capturedCol))
+        grid[capturedSquare] = null
+        return play(s1, s2)
+    }
+
+
+
+    fun tryPlay(s: Square, s1: Square): Board {
         check(canPlay(s, s1)) { "Invalid move $s to $s1" }
         return play(s, s1)
     }
