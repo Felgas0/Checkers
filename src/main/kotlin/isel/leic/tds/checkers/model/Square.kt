@@ -30,9 +30,7 @@ class Square private constructor(val index: Int) {
 
     override fun hashCode():Int = (row.hashCode() + column.hashCode()) * 31
 
-    fun isDiagonal(to: Square?): Boolean {
-        return to != null && row.index - to.row.index == column.index - to.column.index
-    }
+
 }
 
 fun String.toSquareOrNull(): Square? {
@@ -46,7 +44,6 @@ fun String.toSquare(): Square = toSquareOrNull() ?: throw IllegalArgumentExcepti
 
 fun Square(row: Row, col: Column): Square = Square.values[row.index * BOARD_DIM + col.index % BOARD_DIM]
 
-
-fun main(){
-    println(Square.values)
+fun isDiagonal(from: Square , to: Square): Boolean {
+    return Math.abs(from.row.index - to.row.index) == Math.abs(from.column.index - to.column.index)
 }

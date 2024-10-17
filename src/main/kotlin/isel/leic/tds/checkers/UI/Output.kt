@@ -9,7 +9,7 @@ fun Board.show() {
         print("${row.digit} |")
         for (col in Column.values) {
             val square = Square(row, col)
-            val piece = grid[square] ?: if (square.black) '-' else ' '
+            val piece = board[square] ?: if (square.black) '-' else ' '
             print("$piece ")
         }
         println("|")
