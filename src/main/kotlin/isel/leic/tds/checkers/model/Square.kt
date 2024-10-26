@@ -20,7 +20,7 @@ class Square private constructor(val index: Int) {
     //@black se a soma de ambos for ímpar entao é quadrado preto
     val black: Boolean get() = (row.index + column.index) % 2 != 0
 
-    fun isValid(): Boolean = index in 0 .. BOARD
+    fun isValid(): Boolean = index in 0..< BOARD
 
     override fun toString() = "${row.digit}${column.symbol}"
 

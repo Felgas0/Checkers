@@ -19,4 +19,17 @@ fun Board.show() {
     for (col in Column.values) {
         print("${col.symbol} ")
     }
+    println()
+    println(when(this){
+        is BoardRun -> " Turn: ${turn}"
+        is BoardWin -> " Winner: ${winner}"
+    })
+}
+
+fun Game.show() = board?.show()
+
+fun Game.showScore(){
+    Player.entries.forEach{
+        println("${it} : ${score[it]}")
+    }
 }

@@ -1,0 +1,47 @@
+@startuml
+
+!define C class
+!define E enum
+!define relationships
+
+C Board {
+    places: Map
+}
+
+C Square {
+    index: Int
+}
+
+C Row {
+    index: Int
+    digit: Char
+}
+
+C Column {
+    index: Int
+    symbol: Char
+}
+
+C Piece {
+    canMove(...)
+    canCapture(...)
+}
+
+C Pawn
+C Queen
+
+E Player {
+    BLACK
+    WHITE
+    symbol: Char
+}
+
+Board --* "places" Square : key
+Board --* Piece : value
+Square --* Row : row
+Square --* Column : col
+Piece --> Player : player
+Piece <|-- Pawn
+Piece <|-- Queen
+
+@enduml

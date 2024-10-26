@@ -1,7 +1,7 @@
 package isel.leic.tds.checkers.model
 
 //Linha 1 = BOARD_DIM - 1
-//Linha 8 = BOARD_DIM - (BOARD_DIM - 1)
+//Linha 8 = BOARD_DIM - BOARD_DIM
 
 @JvmInline
 value class Row (val index: Int) {

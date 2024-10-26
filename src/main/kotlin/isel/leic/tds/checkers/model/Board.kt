@@ -1,70 +1,100 @@
 package isel.leic.tds.checkers.model
 
-class Board(val grid: Map<Square, Piece?>, val player: Player) {
+class InvalidMoveException(message: String) : Exception(message)
 
-    companion object {
-        fun createInitialBoard(player: Player): Board {
-            val initialBoard = Square.values.fold(emptyMap<Square, Piece?>()) { acc, square ->
-                when {
-                    square.row.index in 0 until BOARD_DIM / 2 - 1 && square.black -> acc + (square to Pawn(Player.b))
-                    square.row.index in BOARD_DIM / 2 + 1 until BOARD_DIM && square.black -> acc + (square to Pawn(Player.w))
-                    else -> acc
-                }
-            }
-            return Board(initialBoard, player)
+typealias Grid = Map<Square, Piece?>
+
+sealed class Board(val grid: Grid)
+class BoardRun(grid: Grid, val turn: Player) : Board(grid)
+class BoardWin(grid: Grid, val winner: Player) : Board(grid)
+
+operator fun Board.get(position: Square): Player? = if(grid[position] != null) grid[position]?.player else null
+
+fun createInitialBoard(player: Player): BoardRun {
+    val initialBoard = Square.values.fold(emptyMap<Square, Piece?>()) { acc, square ->
+        when {
+            square.row.index in 0 until BOARD_DIM / 2 - 1 && square.black -> acc + (square to Pawn(Player.b))
+            square.row.index in BOARD_DIM / 2 + 1 until BOARD_DIM && square.black -> acc + (square to Pawn(Player.w))
+            else -> acc
         }
     }
+    return BoardRun(initialBoard, player)
+}
+
+fun Board.play(from: Square, to: Square): Board {
+    require(this is BoardRun) { "Game is over" }
+    require(to.black && from.black) { "Invalid Position" }
+    require(this[to] == null) { "Position taken $to" }
+    require(grid[from] != null) { "No piece at $from" }
+    require(grid[from]?.player == turn) { "Not your turn" }
 
 
-    fun play(startPos: Square, endPos: Square): Board {
-        val newBoard = grid + (endPos to grid[startPos]) + (startPos to null)
+    val piece = grid[from] ?: error("No piece at $from")
 
-        // Check if a piece was captured
-        val capturedBoard = capture(newBoard, endPos, startPos)
+    // Check if there are any possible captures for the current player
+    val possibleCaptures = grid.filterValues { it?.player == turn }
+        .any { (square, piece) -> piece?.canCapture(this, square) == true }
 
-        // Promote to checker if reaching the opposite end
-        val piece = capturedBoard[endPos]
-        val promotedBoard = if (piece != null) {
-            when {
-                player == Player.w && endPos.row.index == 0 -> capturedBoard + (endPos to piece.promote())
-                player == Player.b && endPos.row.index == BOARD_DIM - 1 -> capturedBoard + (endPos to piece.promote())
-                else -> capturedBoard
-            }
-        } else {
-            capturedBoard
-        }
-
-        return Board(promotedBoard, player.other)
+    // Use require to enforce capture rule
+    require(!(possibleCaptures && !piece.canCapture(this, from))) {
+        "You must capture if a capture is available"
     }
 
-    private fun capture(board: Map<Square, Piece?>, endPos: Square, startPos: Square): Map<Square, Piece?> {
-        val rowDiff = endPos.row.index - startPos.row.index
-        val colDiff = endPos.column.index - startPos.column.index
-        return if (Math.abs(rowDiff) == 2 && Math.abs(colDiff) == 2) {
-            val capturedRow = startPos.row.index + rowDiff / 2
-            val capturedCol = startPos.column.index + colDiff / 2
-            val capturedSquare = Square(Row(capturedRow), Column(capturedCol))
-            board + (capturedSquare to null)
-        } else {
-            board
-        }
-    }
+    return (this as BoardRun).makeMove(from, to)
+}
+//ver o canCapture antes de ver o canMove!!!
+/*
+private fun BoardRun.makeMove(from: Square, to: Square): Board {
+    val piece = grid[from] ?: error("No piece at $from")
+    val newGrid = if(piece.canMove(this,from,to)) grid + (to to piece) + (from to null) else error("Invalid move")
+    val captures = piece.canCapture(this, from)
+    val capturedGrid = check(captures[from] == to, )
+    val promotedGrid = promote(capturedGrid, to, piece)
+    return if (checkWin(promotedGrid)) BoardWin(promotedGrid, turn) else BoardRun(promotedGrid, turn.other)
+}
+*/
 
-    fun canPlay(startPos: Square, endPos: Square): Boolean {
-        return when {
-            grid[startPos] == null -> false          // if the selected square by the user does not have any piece can't play
-            grid[startPos]?.player != player -> false          // if the piece selected by a player is an opponent piece can't play
-            grid[endPos] != null -> false          // if there is a piece on the end position can't play
-            !endPos.black -> false
-            !isDiagonal(startPos, endPos) -> false
-            else -> true
-        }
-    }
+private fun BoardRun.makeMove(from: Square, to: Square): Board {
+    val piece = grid[from] ?: error("No piece at $from")
 
-    fun isWinner(p: Player): Boolean = grid.values.none { it?.player != player }
+    // Perform the move
+    val newGrid = grid + (to to piece) + (from to null)
+    require(piece.canMove(this, from, to)) { "Invalid move" }
 
-    fun tryPlay(s: Square, s1: Square): Board {
-        check(canPlay(s, s1)) { "Invalid move $s to $s1" }
-        return play(s, s1)
+    // Check if the move results in a capture
+    val capturedGrid = if (piece.canCapture(this, from)) capture(newGrid, from, to) else newGrid
+
+    // Promote the piece if necessary
+    val promotedGrid = promote(capturedGrid, to, piece)
+
+    // If a capture was made and more captures are available, return the board with the current player
+    val nextTurn = if (capturedGrid != newGrid && piece.canCapture(BoardRun(promotedGrid, turn), to)) turn else turn.other
+
+    // Check for a win condition
+    return if (checkWin(promotedGrid)) BoardWin(promotedGrid, turn) else BoardRun(promotedGrid, nextTurn)
+}
+
+private fun capture(grid: Grid, from: Square, to: Square): Grid {
+    val rowDiff = to.row.index - from.row.index
+    val colDiff = to.column.index - from.column.index
+    return if (Math.abs(rowDiff) == 2 && Math.abs(colDiff) == 2) {
+        val capturedRow = from.row.index + rowDiff / 2
+        val capturedCol = from.column.index + colDiff / 2
+        val capturedSquare = Square(Row(capturedRow), Column(capturedCol))
+        grid + (capturedSquare to null)
+    } else {
+        grid
     }
+}
+
+private fun promote(grid: Grid, to: Square, piece: Piece): Grid {
+    return if ((piece.player == Player.w && to.row.index == 0) || (piece.player == Player.b && to.row.index == BOARD_DIM - 1)) {
+        grid + (to to piece.promote())
+    } else {
+        grid
+    }
+}
+
+private fun checkWin(grid: Grid): Boolean {
+    return grid.values.none { it?.player == Player.b } || grid.values.none { it?.player == Player.w }
 }

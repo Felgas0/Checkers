@@ -1,70 +1,38 @@
 package isel.leic.tds.checkers.UI
+
 import isel.leic.tds.checkers.model.*
 
-abstract class Command (val syntaxArgs: String = ""){
-    abstract fun execute(board: Board?, args: List<String>): Board
-    open fun exit():Boolean = false
+abstract class Command(val syntaxArgs: String = "") {
+    open fun execute(args: List<String>, game: Game): Game = game
+    open val toTerminate: Boolean = false
 }
 
-class StartCmd: Command() {
-    override fun execute(board: Board?, args: List<String>): Board {
-        if (args.size > 1) {
-            throw IllegalArgumentException("Invalid number of arguments")
-        }
-        return Board.createInitialBoard(Player.w)
-    }
-
-}
-
-class PlayCmd: Command(){
-    override fun execute(board: Board?, args: List<String>): Board {
-        if (args.size != 2) {
-            throw IllegalArgumentException("Invalid number of arguments")
-        }
-        val firstArg = requireNotNull(args[0].toSquareOrNull()) { "Quadrado Inválido" }
-        val secondArg = requireNotNull(args[1].toSquareOrNull()) { "Quadrado Inválido" }
-        check(board != null) { "No Board" }
-        return board.tryPlay(firstArg, secondArg)
-    }
-
-}
-
-class gridCmd:Command(){
-    override fun execute(board: Board?, args: List<String>): Board{
-        if (args.size != 0) {
-            throw IllegalArgumentException("Invalid number of arguments")
-        }
-        check(board != null) { "No Board" }
-        board.show()
-        return board
+object PlayCommand : Command("<from> <to>") {
+    override fun execute(args: List<String>, game: Game): Game {
+        require(args.size == 2) { "Invalid number of arguments" }
+        val from = requireNotNull(args[0].toSquareOrNull()) { "Invalid from position" }
+        val to = requireNotNull(args[1].toSquareOrNull()) { "Invalid to position" }
+        return game.play(from, to)
     }
 }
 
-class RefreshCmd:Command(){
-    override fun execute(board: Board?, args: List<String>): Board {
-        if (args.size != 0) {
-            throw IllegalArgumentException("Invalid number of arguments")
-        }
-        TODO("Not yet implemented")
+object StartCommand : Command("<name>") {
+    override fun execute(args: List<String>, game: Game): Game {
+        require(args.size == 1) { "Game must have a name" }
+        return game.new()
     }
 }
 
-class ExitCmd: Command(){
-    override fun execute(board: Board?, args: List<String>): Board {
-        if (args.size != 0) {
-            throw IllegalArgumentException("Invalid number of arguments")
-        }
-        return board!!
+fun getCommands() = mapOf(
+    "play" to PlayCommand,
+    "start" to StartCommand,
+    "exit" to object : Command() { override val toTerminate = true },
+    "grid" to object : Command() {
+        override fun execute(args: List<String>, game: Game): Game =
+            game.show().let { game }
+    },
+    "refresh" to object : Command() {
+        override fun execute(args: List<String>, game: Game): Game =
+            game.also { it.show() }
     }
-    override fun exit(): Boolean = true
-}
-
-fun getCmd(): Map<String, Command> {
-    return mapOf(
-        "start" to StartCmd(),
-        "play" to PlayCmd(),
-        "grid" to gridCmd(),
-        "refresh" to RefreshCmd(),
-        "exit" to ExitCmd()
-    )
-}
+)
