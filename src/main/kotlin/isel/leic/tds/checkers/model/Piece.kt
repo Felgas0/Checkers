@@ -58,13 +58,43 @@ class Pawn(player: Player) : Piece(player) {
 
 class Queen(player: Player):Piece(player){
     override val isChecker = true
+
+    private val captureDirections get()= (2..<BOARD_DIM).flatMap { x ->
+        listOf(
+            Pair(x, x),
+            Pair(x, -x),
+            Pair(-x, x),
+            Pair(-x, -x)
+            //todas as direções possíveis a partir de dois até Board_DIM-1
+        )
+    }
+
+    private val moveDirections get()= (1..BOARD_DIM).flatMap { x ->
+        listOf(
+            Pair(x, x),
+            Pair(x, -x),
+            Pair(-x, x),
+            Pair(-x, -x)
+            //todas as direções possíveis
+        )
+    }
+
     override fun canCapture(board: Board, startPos: Square): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun canMove(board: Board, startPos: Square, endPos: Square): Boolean {
-        TODO("Not yet implemented")
+        val rowDiff = endPos.row.index - startPos.row.index
+        val colDiff = endPos.column.index - startPos.column.index
+
+        // Check if the move is diagonal
+        return moveDirections.any { (rowOffset, colOffset) ->
+            rowDiff == rowOffset && colDiff == colOffset && endPos.isValid() && board.grid[endPos] == null
+        }
     }
 
     override fun promote(): Piece = this
 }
+
+
+
