@@ -1,8 +1,5 @@
 import isel.leic.tds.checkers.model.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class PieceTest {
 
@@ -47,6 +44,27 @@ class PieceTest {
     }
 
     @Test
+    fun testPlayWithNoCapture(){
+        val board = BoardRun(mapOf(
+            "1a".toSquare() to Queen(Player.b),
+            "7g".toSquare() to Pawn(Player.b),
+            "7a".toSquare() to Pawn(Player.b),
+            "8b".toSquare() to Pawn(Player.b),
+            "8d".toSquare() to Pawn(Player.b),
+            "8f".toSquare() to Pawn(Player.b),
+            "7g".toSquare() to Pawn(Player.b),
+            "6h".toSquare() to Pawn(Player.b),
+            "4h".toSquare() to Pawn(Player.w),
+            "3g".toSquare() to Pawn(Player.w),
+            "2h".toSquare() to Pawn(Player.w),
+            "1g".toSquare() to Pawn(Player.w),
+            "2d".toSquare() to Pawn(Player.w),
+            ), Player.b)
+        val newBoard = board.play("7a".toSquare(), "6b".toSquare())
+        assertNotEquals(board, newBoard)
+    }
+
+    @Test
     fun testPawnPromotion() {
         val pawnW = Pawn(Player.w)
         val pawnB = Pawn(Player.b)
@@ -57,5 +75,46 @@ class PieceTest {
         assertTrue(promotedPiece is Queen, "Pawn should promote to Queen")
         assertTrue(promotedPiece2 is Queen, "Pawn should promote to Queen")
         assertEquals(queen, promotedPiece3, "Queen should not promote")
+    }
+    @Test
+    fun testQueenCannotCaptureSamePlayerPiece() {
+        val board = BoardRun(mapOf(
+            "4d".toSquare() to Queen(Player.w),
+            "6f".toSquare() to Pawn(Player.w)
+        ), Player.w)
+        val queen = board.grid["4d".toSquare()] ?: error("No piece at 4d")
+        assertFalse(queen.canCapture(board, "4d".toSquare()), "Queen should not be able to capture a piece of the same player")
+    }
+
+    @Test
+    fun testQueenCanCaptureOpponentPiece() {
+        val board = BoardRun(mapOf(
+            "4d".toSquare() to Queen(Player.w),
+            "6f".toSquare() to Pawn(Player.b)
+        ), Player.w)
+        val queen = board.grid["4d".toSquare()] ?: error("No piece at 4d")
+        assertTrue(queen.canCapture(board, "4d".toSquare()), "Queen should be able to capture an opponent's piece")
+    }
+
+    @Test
+    fun testQueenCannotCaptureIfBlockedBySamePlayerPiece() {
+        val board = BoardRun(mapOf(
+            "4d".toSquare() to Queen(Player.w),
+            "5e".toSquare() to Pawn(Player.w),
+            "6f".toSquare() to Pawn(Player.b)
+        ), Player.w)
+        val queen = board.grid["4d".toSquare()] ?: error("No piece at 4d")
+        assertFalse(queen.canCapture(board, "4d".toSquare()), "Queen should not be able to capture if blocked by a piece of the same player")
+    }
+
+    @Test
+    fun testQueenCanCaptureIfNotBlocked() {
+        val board = BoardRun(mapOf(
+            "4d".toSquare() to Queen(Player.w),
+            "5e".toSquare() to Pawn(Player.b),
+            "6f".toSquare() to Pawn(Player.b)
+        ), Player.w)
+        val queen = board.grid["4d".toSquare()] ?: error("No piece at 4d")
+        assertFalse(queen.canCapture(board, "4d".toSquare()), "Queen should be able to capture if not blocked by a piece of the same player")
     }
 }

@@ -1,58 +1,57 @@
 package isel.leic.tds.checkers.model
 
 import isel.leic.tds.checkers.storage.Serializer
-/*
-// example:
-// X:0 Y:1 null:1
-// X
-// RUN O | 4:X 0:O 5:X
+
 object GameSerializer: Serializer<Game> {
     override fun serialize(data: Game) = buildString {
-        appendLine(data.score.entries.joinToString(" ") { (player,points) -> "$player:$points"})
+        appendLine(data.score.entries.joinToString(" ") { (player, points) -> "$player:$points" })
         appendLine(data.firstPlayer)
-        data.board?.let{ appendLine(BoardSerializer.serialize(it)) }
+        data.board?.let { append(BoardSerializer.serialize(it)) }
     }
 
     override fun deserialize(text: String): Game {
         val parts = text.split("\n")
         return Game(
-            board = if (parts.size==2) null else BoardSerializer.deserialize(parts[2]),
-            firstPlayer =  Player.valueOf(parts[1]),
+            board = if (parts.size == 2) null else BoardSerializer.deserialize(parts[2]),
+            firstPlayer = Player.valueOf(parts[1]),
             score = parts[0].split(" ")
                 .map { it.split(":") }
-                .associate { (player,points) ->
-                    Player.entries.firstOrNull { it.name==player } to points.toInt()
+                .associate { (player, points) ->
+                    Player.entries.firstOrNull { it.name == player } to points.toInt()
                 }
         )
     }
 }
 
-// example: "RUN O | 4:X 0:O 5:X"
 object BoardSerializer: Serializer<Board> {
     override fun serialize(data: Board): String =
-        when(data) {
+        when (data) {
             is BoardRun -> "RUN ${data.turn}"
             is BoardWin -> "WIN ${data.winner}"
-            //is BoardDraw -> "DRAW " // final space to simplify deserializing
         } + " | " +
-                data.grid.entries.joinToString(" ") { (pos,player) -> "$pos:$player" }
+                data.grid.entries.joinToString(" ") { (square, piece) -> "$square:${piece ?: "empty"}" }
 
     override fun deserialize(text: String): Board {
-        val (left,right) = text.split(" | ")
+        val (left, right) = text.split(" | ")
         val moves = if (right.isEmpty()) mapOf() else right
             .split(" ").map { it.split(":") }
-            .associate { (square,piece) ->
+            .associate { (square, piece) ->
                 square.toSquare() to piece.toPieceOrNull()
             }
-        val (type,player) = left.split(" ")
-        return when(type) {
-            "RUN" -> BoardRun(moves, Player.valueOf(player) )
-            "WIN" -> BoardWin(moves,Player.valueOf(player))
-            //"DRAW" -> BoardDraw(moves)
+        val (type, player) = left.split(" ")
+        return when (type) {
+            "RUN" -> BoardRun(moves, Player.valueOf(player))
+            "WIN" -> BoardWin(moves, Player.valueOf(player))
             else -> error("Illegal board type $type")
         }
     }
 }
 
- */
+private fun String.toPieceOrNull(): Piece = when (this) {
+    "w" -> Pawn(Player.w)
+    "b" -> Pawn(Player.b)
+    "W" -> Queen(Player.w)
+    "B" -> Queen(Player.b)
+    else -> error("Illegal piece $this")
+}
 

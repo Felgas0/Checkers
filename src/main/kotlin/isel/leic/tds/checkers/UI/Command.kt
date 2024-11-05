@@ -2,37 +2,36 @@ package isel.leic.tds.checkers.UI
 
 import isel.leic.tds.checkers.model.*
 
-abstract class Command(val syntaxArgs: String = "") {
-    open fun execute(args: List<String>, game: Game): Game = game
-    open val toTerminate: Boolean = false
+class Command(
+    val syntaxArgs: String = "",
+    val toTerminate: Boolean = false,
+    val execute: (args: List<String>, clash: Clash) -> Clash = { _, clash -> clash }
+)
+
+val playCommand = Command("<from> <to>") { args, clash ->
+    require(args.size == 2) { "Invalid number of arguments" }
+    val from = requireNotNull(args[0].toSquareOrNull()) { "Invalid from position" }
+    val to = requireNotNull(args[1].toSquareOrNull()) { "Invalid to position" }
+    clash.play(from, to)
 }
 
-object PlayCommand : Command("<from> <to>") {
-    override fun execute(args: List<String>, game: Game): Game {
-        require(args.size == 2) { "Invalid number of arguments" }
-        val from = requireNotNull(args[0].toSquareOrNull()) { "Invalid from position" }
-        val to = requireNotNull(args[1].toSquareOrNull()) { "Invalid to position" }
-        return game.play(from, to)
-    }
+val startCommand = Command ("<name>"){
+    args, clash ->
+    val arg = requireNotNull(args.firstOrNull()) { "Missing name" }
+    clash.newBoard()
 }
 
-object StartCommand : Command("<name>") {
-    override fun execute(args: List<String>, game: Game): Game {
-        require(args.size == 1) { "Game must have a name" }
-        return game.new()
-    }
+fun nameCmd(fx: Clash.(Name) -> Clash) = Command("<name>") { args, clash ->
+    val arg = requireNotNull(args.firstOrNull()) { "Missing name" }
+    clash.fx(Name(arg))
 }
 
 fun getCommands() = mapOf(
-    "play" to PlayCommand,
-    "start" to StartCommand,
-    "exit" to object : Command() { override val toTerminate = true },
-    "grid" to object : Command() {
-        override fun execute(args: List<String>, game: Game): Game =
-            game.show().let { game }
-    },
-    "refresh" to object : Command() {
-        override fun execute(args: List<String>, game: Game): Game =
-            game.also { it.show() }
-    }
+    "play" to playCommand,
+    "start" to startCommand,
+    "exit" to Command(toTerminate = true),
+    //"grid" to Command { _, clash -> clash.also { it.show() } },
+    "refresh" to Command { _, clash -> clash.refresh() },
+    "create" to nameCmd(Clash::start),
+    "join" to nameCmd(Clash::join)
 )
