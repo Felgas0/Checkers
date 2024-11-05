@@ -110,4 +110,17 @@ class BoardTest {
         assertEquals(boardAfterCapture3.winner, Player.w)
         assertNotNull(boardAfterCapture3.grid["7g".toSquare()])
     }
+
+    @Test
+    fun queenCanCapturePawnMoveInstead(){
+        val grid = mapOf(
+            "8h".toSquare() to Queen(Player.w),
+            "4d".toSquare() to Pawn(Player.b),
+            "2f".toSquare() to Pawn(Player.w)
+        )
+        val boardBeforeCapture = BoardRun(grid, Player.w)
+        assertFailsWith<IllegalArgumentException>("You must capture if a capture is available") {
+            boardBeforeCapture.play("2f".toSquare(), "3g".toSquare())
+        }
+    }
 }

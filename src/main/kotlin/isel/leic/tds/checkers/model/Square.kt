@@ -13,6 +13,7 @@ class Square private constructor(val index: Int) {
         }
     }
 
+
     companion object{
         val values :List<Square> = List(BOARD) { Square(it)}
     }

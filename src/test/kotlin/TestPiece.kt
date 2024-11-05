@@ -1,58 +1,61 @@
-package isel.leic.tds.checkers.model
-
-import kotlin.test.*
 import isel.leic.tds.checkers.model.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class PieceTest {
-    /*
 
     @Test
     fun testPawnCanMove() {
-        val board = createInitialBoard(Player.w)
-        val pawn = Pawn(Player.w)
-        val startPos = "3c".toSquare()
-        val moves = pawn.moves(board, startPos)
-        assertTrue (moves.size == 2, "Pawn should have 2 valid moves")
-        assertTrue("4b".toSquare() in moves, "Pawn should have this valid move")
-        assertTrue ( "4d".toSquare() in moves, "Pawn should have this valid move" )
+        val board = BoardRun(mapOf("2b".toSquare() to Pawn(Player.w)), Player.w)
+        val pawn = board.grid["2b".toSquare()] ?: error("No piece at 2b")
+        assertTrue(pawn.canMove(board, "2b".toSquare(), "3c".toSquare()))
+        assertFalse(pawn.canMove(board, "2b".toSquare(), "4d".toSquare()))
     }
-
 
     @Test
     fun testPawnCanCapture() {
-        val board = createInitialBoard(Player.w)
-        val pawn = Pawn(Player.w)
-        val startPos = Square(Row(1), Column(1))
-        val captures = pawn.captures(board, startPos)
-        assertTrue(captures.isNotEmpty(), "Pawn should have valid captures")
+        val board = BoardRun(mapOf(
+            "2b".toSquare() to Pawn(Player.w),
+            "3c".toSquare() to Pawn(Player.b)
+        ), Player.w)
+        val pawn = board.grid["2b".toSquare()] ?: error("No piece at 2b")
+        assertTrue(pawn.canCapture(board, "2b".toSquare()))
     }
 
     @Test
     fun testQueenCanMove() {
-        val board = Board(emptyMap())
-        val queen = Queen(Player.WHITE)
-        val startPos = Square(Row(1), Column(1))
-        val moves = queen.moves(board, startPos)
-        assertTrue(moves!!.isNotEmpty(), "Queen should have valid moves")
+        val board = BoardRun(mapOf("4d".toSquare() to Queen(Player.w)), Player.w)
+        val queen = board.grid["4d".toSquare()] ?: error("No piece at 4d")
+        assertTrue(queen.canMove(board, "4d".toSquare(), "1a".toSquare()))
+        assertTrue (queen.canMove(board, "4d".toSquare(), "7g".toSquare()))
+        assertTrue(queen.canMove(board, "4d".toSquare(), "2f".toSquare()))
+        assertTrue(queen.canMove(board, "4d".toSquare(), "5c".toSquare()))
+        assertFalse(queen.canMove(board, "4d".toSquare(), "5f".toSquare()))
+        assertFalse(queen.canMove(board, "4d".toSquare(), "7e".toSquare()))
     }
 
     @Test
     fun testQueenCanCapture() {
-        val board = Board(mapOf(
-            Square(Row(1), Column(1)) to Queen(Player.WHITE),
-            Square(Row(2), Column(2)) to Pawn(Player.BLACK)
-        ))
-        val queen = Queen(Player.WHITE)
-        val startPos = Square(Row(1), Column(1))
-        val captures = queen.captures(board, startPos)
-        assertTrue(captures.isNotEmpty(), "Queen should have valid captures")
+        val board = BoardRun(mapOf(
+            "4d".toSquare() to Queen(Player.w),
+            "7g".toSquare() to Pawn(Player.b)
+        ), Player.w)
+        val queen = board.grid["4d".toSquare()] ?: error("No piece at 4d")
+        assertTrue(queen.canCapture(board, "7g".toSquare()))
     }
 
     @Test
     fun testPawnPromotion() {
-        val pawn = Pawn(Player.WHITE)
-        val promotedPiece = pawn.promote()
+        val pawnW = Pawn(Player.w)
+        val pawnB = Pawn(Player.b)
+        val queen = Queen(Player.w)
+        val promotedPiece = pawnW.promote()
+        val promotedPiece2 = pawnB.promote()
+        val promotedPiece3 = queen.promote()
         assertTrue(promotedPiece is Queen, "Pawn should promote to Queen")
+        assertTrue(promotedPiece2 is Queen, "Pawn should promote to Queen")
+        assertEquals(queen, promotedPiece3, "Queen should not promote")
     }
-     */
 }

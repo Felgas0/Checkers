@@ -35,9 +35,11 @@ fun Board.play(from: Square, to: Square): Board {
     val possibleCaptures = grid.filterValues { it?.player == turn }
         .any { (square, piece) -> piece?.canCapture(this, square) == true }
 
+    val possibleCapture = grid.filterValues { it?.player == turn }.filter { (square, piece) -> piece?.canCapture(this, square) == true }
+
     // Use require to enforce capture rule
     require(!(possibleCaptures && !piece.canCapture(this, from))) {
-        "You must capture if a capture is available"
+        "You must capture if a capture is available for example $possibleCapture"
     }
 
     return (this as BoardRun).makeMove(from, to)

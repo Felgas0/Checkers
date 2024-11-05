@@ -10,7 +10,9 @@ fun Board.show() {
         for (col in Column.values) {
             val square = Square(row, col)
             val piece = grid[square]?.toString() ?: if (square.black) '-' else ' '
-            print("$piece ")
+            print("$piece")
+            if (col != Column.values.last()) print(" ")
+
         }
         println("|")
     }
