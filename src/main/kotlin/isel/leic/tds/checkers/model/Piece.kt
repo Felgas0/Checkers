@@ -60,7 +60,7 @@ class Pawn(player: Player) : Piece(player) {
 
     class Queen(player: Player) : Piece(player) {
 
-        /*private val captureDirections get()= (2..<BOARD_DIM).flatMap { x ->
+        private val captureDirections get()= (2..<BOARD_DIM).flatMap { x ->
             listOf(
                 Pair(x, x),
                 Pair(x, -x),
@@ -70,7 +70,7 @@ class Pawn(player: Player) : Piece(player) {
             )
         }
 
-         */
+
 
         private val moveDirections get() = (1..BOARD_DIM).flatMap { x ->
             listOf(
@@ -84,9 +84,7 @@ class Pawn(player: Player) : Piece(player) {
 
 
         override fun canCapture(board: Board, startPos: Square): Boolean {
-            val directions = listOf(
-                Pair(1, 1), Pair(1, -1), Pair(-1, 1), Pair(-1, -1)
-            )
+            val directions = moveDirections
 
             return directions.any { (rowInc, colInc) ->
                 val capturedRow = startPos.row.index + rowInc
@@ -101,6 +99,7 @@ class Pawn(player: Player) : Piece(player) {
                     val landingPos = Square(Row(landingRow), Column(landingCol))
 
                     board.grid[capturePos]?.player == player.other && board.grid[landingPos] == null
+                    return true
                 } else {
                     false
                 }
