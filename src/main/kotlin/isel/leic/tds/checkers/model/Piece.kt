@@ -69,37 +69,56 @@ class Pawn(player: Player) : Piece(player) {
                 //todas as direções possíveis
             )
         }
+        private val captureDirections get()= (2..<BOARD_DIM).flatMap { x ->
+            listOf(
+                Pair(x, x),
+                Pair(x, -x),
+                Pair(-x, x),
+                Pair(-x, -x)
+                //todas as direções possíveis a partir de dois até Board_DIM-1
+            )
+        }
+
 
 
         override fun canCapture(board: Board, from: Square): Boolean {
-            val directions = listOf(
-                1 to 1, 1 to -1, -1 to 1, -1 to -1
-            )
 
-            return directions.any { (rowDir, colDir) ->
-                val possibleSquares = generateSequence(from) { square ->
-                    val nextRow = square.row.index + rowDir
-                    val nextCol = square.column.index + colDir
-                    if (nextRow in 0 until BOARD_DIM && nextCol in 0 until BOARD_DIM) {
-                        Square(Row(nextRow), Column(nextCol))
-                    } else {
-                        null
+            for ((row, col) in moveDirections) { //checks all possible moves
+                val capturedRow = from.row.index + row
+                val capturedCol = from.column.index + col //row and col that should have an enemy piece on it
+                val landingRow = capturedRow + if(row > 0) 1 else -1
+                val landingCol = capturedCol + if(col > 0) 1 else -1 //row and col after the square that would be captured
+
+                if (landingRow in 0 until BOARD_DIM && landingCol in 0 until BOARD_DIM
+                    && capturedRow in 0 until BOARD_DIM && capturedCol in 0 until BOARD_DIM) {
+
+                    val capturePos = Square(Row(capturedRow), Column(capturedCol))
+                    val landingPos = Square(Row(landingRow), Column(landingCol))
+
+                    if (board.grid[capturePos]?.player == player.other && board.grid[capturePos] != null
+                        && board.grid[landingPos] == null
+                    ){
+                        var checkRow = from.row.index + (if (row > 0) 1 else -1)
+                        var checkCol = from.column.index + (if (col > 0) 1 else -1)
+
+                        while (checkRow != capturedRow && checkCol != capturedCol
+                            && checkRow in 0 until BOARD_DIM && checkCol in 0 until BOARD_DIM ) {
+                            val checkPos = Square(Row(checkRow), Column(checkCol))
+                            if (board.grid[checkPos]?.player == player) {
+                                // Allied piece blocking the path
+                                return false
+                            }
+                            checkRow += if (row > 0) 1 else -1
+                            checkCol += if (col > 0) 1 else -1
+                        }
+                        return true
                     }
-                }.toList()
+                } // if the captured square has an enemy piece and the landing position is available
 
-                val opponentSquares = possibleSquares.takeWhile { square ->
-                    board.grid[square] == null || board.grid[square]?.player == this.player
-                }
-
-                val emptySquares = possibleSquares.takeWhile { square ->
-                    board.grid[square] == null
-                }
-
-                opponentSquares.isNotEmpty() && opponentSquares.drop(1).all { square ->
-                    board.grid[square] == null
-                } && opponentSquares.firstOrNull()?.let { board.grid[it]?.player != this.player } == true
             }
+            return false
         }
+
 
         override fun canMove(board: Board, startPos: Square, endPos: Square): Boolean {
             val rowDiff = endPos.row.index - startPos.row.index
@@ -141,4 +160,17 @@ class Pawn(player: Player) : Piece(player) {
             }
         }
     }
+
+fun main(){
+    val moveDirections = (1..BOARD_DIM).flatMap { x ->
+        listOf(
+            Pair(x, x),
+            Pair(x, -x),
+            Pair(-x, x),
+            Pair(-x, -x)
+            //todas as direções possíveis
+        )
+    }
+    println(moveDirections)
+}
 
