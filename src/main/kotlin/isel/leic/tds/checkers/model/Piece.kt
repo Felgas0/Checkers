@@ -1,7 +1,5 @@
 package isel.leic.tds.checkers.model
 
-import isel.leic.tds.checkers.model.*
-import java.lang.Math.*
 import kotlin.math.abs
 
 abstract class Piece(val player: Player) {
@@ -69,23 +67,13 @@ class Pawn(player: Player) : Piece(player) {
                 //todas as direções possíveis
             )
         }
-        private val captureDirections get()= (2..<BOARD_DIM).flatMap { x ->
-            listOf(
-                Pair(x, x),
-                Pair(x, -x),
-                Pair(-x, x),
-                Pair(-x, -x)
-                //todas as direções possíveis a partir de dois até Board_DIM-1
-            )
-        }
 
 
-
-        override fun canCapture(board: Board, from: Square): Boolean {
+        override fun canCapture(board: Board, startPos: Square): Boolean {
 
             for ((row, col) in moveDirections) { //checks all possible moves
-                val capturedRow = from.row.index + row
-                val capturedCol = from.column.index + col //row and col that should have an enemy piece on it
+                val capturedRow = startPos.row.index + row
+                val capturedCol = startPos.column.index + col //row and col that should have an enemy piece on it
                 val landingRow = capturedRow + if(row > 0) 1 else -1
                 val landingCol = capturedCol + if(col > 0) 1 else -1 //row and col after the square that would be captured
 
@@ -98,20 +86,7 @@ class Pawn(player: Player) : Piece(player) {
                     if (board.grid[capturePos]?.player == player.other && board.grid[capturePos] != null
                         && board.grid[landingPos] == null
                     ){
-                        var checkRow = from.row.index + (if (row > 0) 1 else -1)
-                        var checkCol = from.column.index + (if (col > 0) 1 else -1)
-
-                        while (checkRow != capturedRow && checkCol != capturedCol
-                            && checkRow in 0 until BOARD_DIM && checkCol in 0 until BOARD_DIM ) {
-                            val checkPos = Square(Row(checkRow), Column(checkCol))
-                            if (board.grid[checkPos]?.player == player) {
-                                // Allied piece blocking the path
-                                return false
-                            }
-                            checkRow += if (row > 0) 1 else -1
-                            checkCol += if (col > 0) 1 else -1
-                        }
-                        return true
+                        if(checkPath(board, startPos, Square(Row(capturedRow), Column(capturedCol)), row, col)) return true
                     }
                 } // if the captured square has an enemy piece and the landing position is available
 
@@ -119,6 +94,18 @@ class Pawn(player: Player) : Piece(player) {
             return false
         }
 
+        tailrec fun checkPath(board: Board, from: Square, capturedSquare: Square, row: Int, col: Int): Boolean {
+            val checkRow = from.row.index + if(row>0) 1 else -1
+            val checkCol = from.column.index + if(col>0) 1 else -1
+
+            if (checkRow == capturedSquare.row.index && checkCol == capturedSquare.column.index) return true
+            // if (checkRow !in 0 until BOARD_DIM || checkCol !in 0 until BOARD_DIM) return false
+
+            val checkPos = Square(Row(checkRow), Column(checkCol))
+            if (board.grid[checkPos]?.player != null) return false // Allied piece blocking the path
+
+            return checkPath(board, Square(Row(checkRow), Column(checkCol)), capturedSquare, row, col)
+        }
 
         override fun canMove(board: Board, startPos: Square, endPos: Square): Boolean {
             val rowDiff = endPos.row.index - startPos.row.index
@@ -134,43 +121,5 @@ class Pawn(player: Player) : Piece(player) {
 
         override fun toString(): String = if (player == Player.w) "W" else "B"
 
-
-        private fun checkDirectionForCapture(board: Board, startPos: Square, rowInc: Int, colInc: Int): Boolean {
-            val nextRow = startPos.row.index + rowInc
-            val nextCol = startPos.column.index + colInc
-
-            if (nextRow !in 0 until BOARD_DIM || nextCol !in 0 until BOARD_DIM) return false
-
-            val nextSquare = Square(Row(nextRow), Column(nextCol))
-            val piece = board.grid[nextSquare]
-
-            return when {
-                piece == null -> checkDirectionForCapture(board, nextSquare, rowInc, colInc)
-                piece.player != this.player -> {
-                    val landingRow = nextRow + rowInc
-                    val landingCol = nextCol + colInc
-                    if (landingRow in 0 until BOARD_DIM && landingCol in 0 until BOARD_DIM) {
-                        val landingSquare = Square(Row(landingRow), Column(landingCol))
-                        board.grid[landingSquare] == null
-                    } else {
-                        false
-                    }
-                }
-                else -> false
-            }
-        }
     }
-
-fun main(){
-    val moveDirections = (1..BOARD_DIM).flatMap { x ->
-        listOf(
-            Pair(x, x),
-            Pair(x, -x),
-            Pair(-x, x),
-            Pair(-x, -x)
-            //todas as direções possíveis
-        )
-    }
-    println(moveDirections)
-}
 

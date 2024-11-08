@@ -77,6 +77,18 @@ class BoardTest {
     }
 
     @Test
+    fun testWinLeaveOpponentWithNoMoves() {
+        val grid = mapOf(
+            "5c".toSquare() to Pawn(Player.w),
+            "8b".toSquare() to Pawn(Player.b),
+            "6b".toSquare() to Pawn(Player.b)
+        )
+        val boardBeforeDraw = BoardRun(grid, Player.w)
+        val boardAfterDraw = boardBeforeDraw.play("4d".toSquare(), "6f".toSquare())
+        assertTrue(boardAfterDraw is BoardWin)
+    }
+
+    @Test
     fun testCaptureMandatory() {
         val grid = mapOf(
             "4d".toSquare() to Pawn(Player.w),

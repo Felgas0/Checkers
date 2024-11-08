@@ -4,7 +4,7 @@ import isel.leic.tds.checkers.storage.Serializer
 
 object GameSerializer: Serializer<Game> {
     override fun serialize(data: Game) = buildString {
-        appendLine(data.score.entries.joinToString(" ") { (player, points) -> "$player:$points" })
+        appendLine(data.score.entries.joinToString(" ") { (player, points) -> if(player == null)"draw:$points" else "$player:$points" })
         appendLine(data.firstPlayer)
         data.board?.let { append(BoardSerializer.serialize(it)) }
     }

@@ -16,7 +16,7 @@ fun main() {
         else try {
             clash = cmd.execute(args,clash)
             if( cmd.toTerminate ) break
-            clash.show()
+            if (clash is ClashRun) clash.show()
         } catch (e: IllegalStateException) {
             println(e.message)
         } catch (e: IllegalArgumentException) {

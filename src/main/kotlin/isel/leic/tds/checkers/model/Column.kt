@@ -1,6 +1,6 @@
 package isel.leic.tds.checkers.model
 
-const val BOARD_DIM = 8
+const val BOARD_DIM = 4
 
 @JvmInline
 value class Column(val index: Int) {

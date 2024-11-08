@@ -59,6 +59,7 @@ fun Board.play(from: Square, to: Square): Board {
     require(to.black && from.black) { "Invalid Position" }
     require(grid[from] != null) { "No piece at $from" }
     require(grid[from]?.player == turn) { "Not your turn" }
+    require(grid[to] == null) {"There is a piece at $to"}
 
     val piece = grid[from] ?: error("No piece at $from")
 
@@ -93,8 +94,13 @@ private fun BoardRun.makeMove(from: Square, to: Square): Board {
     val nextTurn = if (capturedGrid != newGrid && piece.canCapture(BoardRun(promotedGrid, turn), to)) turn else turn.other
 
     // Check for a win condition
-    return if (checkWin(promotedGrid)) BoardWin(promotedGrid, turn) else BoardRun(promotedGrid, nextTurn)
+    if (checkWin(promotedGrid)) return BoardWin(promotedGrid, turn)
+
+    //return if (checkWin(promotedGrid)) BoardWin(promotedGrid, turn) else BoardRun(promotedGrid, nextTurn)
+    return BoardRun(promotedGrid, nextTurn)
 }
+
+
 
 private fun capture(grid: Grid, from: Square, to: Square): Grid {
     val rowDiff = to.row.index - from.row.index
@@ -122,6 +128,7 @@ private fun promote(grid: Grid, to: Square, piece: Piece): Grid {
         grid
     }
 }
+
 
 private fun checkWin(grid: Grid): Boolean {
     return grid.values.none { it.player == Player.b } || grid.values.none { it.player == Player.w }

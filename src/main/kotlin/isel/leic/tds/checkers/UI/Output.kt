@@ -26,6 +26,7 @@ fun Board.show() {
         is BoardRun -> " Turn: ${turn}"
         is BoardWin -> " Winner: ${winner}"
     })
+    println()
 }
 
 fun Game.show() = board?.show()

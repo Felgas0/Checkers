@@ -112,7 +112,7 @@ class PieceTest {
         val board = BoardRun(mapOf(
             "4d".toSquare() to Queen(Player.w),
             "5e".toSquare() to Pawn(Player.b),
-            "6f".toSquare() to Pawn(Player.b)
+            "7g".toSquare() to Pawn(Player.b)
         ), Player.w)
         val queen = board.grid["4d".toSquare()] ?: error("No piece at 4d")
         assertTrue(queen.canCapture(board, "4d".toSquare()), "Queen should be able to capture if not blocked by a piece of the same player")

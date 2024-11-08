@@ -17,32 +17,24 @@ typealias GameStorage = Storage<Name, Game>
 
 open class Clash(val st: GameStorage)
 
-fun Clash.show() {
-    when (this) {
-        is ClashRun -> {
-            println("Game ID: $id")
-            game.show()
-        }
-        else -> println("No active game.")
-    }
-}
 
 class ClashRun(
     st: GameStorage,
     val game: Game,
     val sidePlayer: Player,
     val id: Name,
+    val players: List<Player> = listOf()
 ) : Clash(st)
 
 fun Clash.start(id: Name): Clash {
     val game = Game(firstPlayer = Player.w)
     st.create(id, game)
-    return ClashRun(st, game, Player.w, id)
+    return ClashRun(st, game, Player.w, id, listOf(Player.w))
 }
 
 fun Clash.join(id: Name): Clash {
     val game = requireNotNull(st.read(id)) { "Clash not started" }
-    return ClashRun(st, game, Player.b, id)
+    return ClashRun(st, game, Player.b, id, listOf(Player.w, Player.b))
 }
 
 private fun Clash.runOper(oper: ClashRun.() -> Game): Clash {
@@ -54,13 +46,22 @@ fun Clash.refresh() = runOper {
     (st.read(id) as Game).also { check(game != it) { "No modification" } }
 }
 
+fun Clash.show() {
+    when (this) {
+        is ClashRun -> {
+            println("Game ID: $id")
+            game.show()
+        }
+        else -> println("No active game.")
+    }
+}
+
 fun Clash.newBoard() = runOper {
     game.new().also { st.update(id, it) }
 }
 
 fun Clash.play(from: Square, to: Square) = runOper {
     game.play(from, to).also {
-        check(sidePlayer != (game.board as BoardRun).turn) { "Not your turn" }
         st.update(id, it)
     }
 }

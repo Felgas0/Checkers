@@ -23,7 +23,7 @@ fun Game.play(from: Square, to: Square): Game {
         board = newBoard,
         score = when(newBoard) {
             is BoardWin -> advanceScore(newBoard.winner)
-            else -> score
+            is BoardRun -> score
         }
 
     )
