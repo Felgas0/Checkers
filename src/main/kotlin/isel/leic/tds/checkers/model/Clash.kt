@@ -23,8 +23,12 @@ class ClashRun(
     val game: Game,
     val sidePlayer: Player,
     val id: Name,
-    val players: List<Player> = listOf()
-) : Clash(st)
+    val players: List<Player> = listOf(),
+) : Clash(st){
+    fun hasTwoPlayers():Boolean = players.size == 2
+}
+
+
 
 fun Clash.start(id: Name): Clash {
     val game = Game(firstPlayer = Player.w)
@@ -39,7 +43,7 @@ fun Clash.join(id: Name): Clash {
 
 private fun Clash.runOper(oper: ClashRun.() -> Game): Clash {
     check(this is ClashRun) { "Clash not started" }
-    return ClashRun(st, oper(), if(sidePlayer == Player.w) Player.b else Player.w , id)
+    return ClashRun(st, oper(), sidePlayer , id)
 }
 
 fun Clash.refresh() = runOper {
@@ -50,11 +54,18 @@ fun Clash.show() {
     when (this) {
         is ClashRun -> {
             println("Game ID: $id")
+            println("Player: ${sidePlayer.other}")
+            when(this.game.board){
+                is BoardRun -> println("Turn: ${this.game.board.turn}")
+                is BoardWin -> println("Winner: ${this.game.board.winner}")
+                else -> {}
+            }
             game.show()
         }
         else -> println("No active game.")
     }
 }
+
 
 fun Clash.newBoard() = runOper {
     game.new().also { st.update(id, it) }

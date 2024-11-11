@@ -13,7 +13,7 @@ private fun Game.advanceScore(winner: Player?):Score = score - winner + (winner 
 fun Game.new(): Game = Game(
         board = createInitialBoard(firstPlayer),
         score = if(board is BoardRun) advanceScore(board.turn.other) else score,
-        firstPlayer = firstPlayer.other
+        firstPlayer = firstPlayer
     )
 
 fun Game.play(from: Square, to: Square): Game {

@@ -12,7 +12,6 @@ fun Board.show() {
             val piece = grid[square]?.toString() ?: if (square.black) '-' else ' '
             print("$piece")
             if (col != Column.values.last()) print(" ")
-
         }
         println("|")
     }
@@ -21,11 +20,6 @@ fun Board.show() {
     for (col in Column.values) {
         print("${col.symbol} ")
     }
-    println()
-    println(when(this){
-        is BoardRun -> " Turn: ${turn}"
-        is BoardWin -> " Winner: ${winner}"
-    })
     println()
 }
 

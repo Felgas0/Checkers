@@ -94,7 +94,7 @@ class Pawn(player: Player) : Piece(player) {
             return false
         }
 
-        tailrec fun checkPath(board: Board, from: Square, capturedSquare: Square, row: Int, col: Int): Boolean {
+        private tailrec fun checkPath(board: Board, from: Square, capturedSquare: Square, row: Int, col: Int): Boolean {
             val checkRow = from.row.index + if(row>0) 1 else -1
             val checkCol = from.column.index + if(col>0) 1 else -1
 
