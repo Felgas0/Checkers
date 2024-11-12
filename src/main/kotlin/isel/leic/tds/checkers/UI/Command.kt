@@ -12,6 +12,8 @@ val playCommand = Command("<from> <to>") { args, clash ->
     require(args.size == 2) { "Invalid number of arguments" }
     val from = requireNotNull(args[0].toSquareOrNull()) { "Invalid from position" }
     val to = requireNotNull(args[1].toSquareOrNull()) { "Invalid to position" }
+    require (clash is ClashRun) { "Clash not started" }
+    require(clash.sidePlayer != (clash.game.board as BoardRun).turn) { "Not your Pieces" }
     clash.play(from, to)
 }
 /*

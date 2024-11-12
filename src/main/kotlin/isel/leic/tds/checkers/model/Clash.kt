@@ -33,12 +33,12 @@ class ClashRun(
 fun Clash.start(id: Name): Clash {
     val game = Game(firstPlayer = Player.w)
     st.create(id, game)
-    return ClashRun(st, game, Player.w, id, listOf(Player.w))
+    return ClashRun(st, game, Player.b, id, listOf(Player.w))
 }
 
 fun Clash.join(id: Name): Clash {
     val game = requireNotNull(st.read(id)) { "Clash not started" }
-    return ClashRun(st, game, Player.b, id, listOf(Player.w, Player.b))
+    return ClashRun(st, game, Player.w, id, listOf(Player.w, Player.b))
 }
 
 private fun Clash.runOper(oper: ClashRun.() -> Game): Clash {
